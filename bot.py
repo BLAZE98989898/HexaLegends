@@ -1562,11 +1562,13 @@ class AdvancedWelcomeSecurityBot:
             logger.error(f"Error running bot: {e}")
 
 # Main execution
+# Add this at the VERY END of your bot.py file:
 if __name__ == '__main__':
-    BOT_TOKEN = "8228108336:AAF3OWn5-nYQjEZhNactyldXV9FW9kTtq9k"
+    import os
+    BOT_TOKEN = os.getenv('BOT_TOKEN') or "8228108336:AAF3OWn5-nYQjEZhNactyldXV9FW9kTtq9k"
     
-    if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-        print("❌ Please set your bot token!")
+    if BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
+        print("❌ Please set your BOT_TOKEN environment variable!")
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
