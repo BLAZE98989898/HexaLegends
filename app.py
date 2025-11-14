@@ -2,6 +2,7 @@ from flask import Flask
 import os
 import threading
 import logging
+import asyncio
 import time
 
 app = Flask(__name__)
@@ -13,9 +14,13 @@ logging.basicConfig(
 )
 
 def run_bot():
-    """Run the Telegram bot in a separate thread"""
+    """Run the Telegram bot in a separate thread with proper event loop"""
     try:
         logging.info("🤖 Starting Telegram Bot...")
+        
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         
         # Import inside function to avoid circular imports
         from bot import AdvancedWelcomeSecurityBot
@@ -29,8 +34,8 @@ def run_bot():
         logging.info(f"✅ Using BOT_TOKEN: {BOT_TOKEN[:10]}...")
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         
-        # Run the bot (this will block)
-        bot.run()
+        # Run the bot in the event loop
+        loop.run_until_complete(bot.run_async())
         
     except Exception as e:
         logging.error(f"❌ Bot error: {e}")
