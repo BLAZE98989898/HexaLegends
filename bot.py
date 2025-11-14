@@ -2,6 +2,7 @@ import os
 import logging
 import json
 import sqlite3
+import asyncio
 import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -1585,6 +1586,7 @@ if __name__ == '__main__':
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
+
 
 
 
