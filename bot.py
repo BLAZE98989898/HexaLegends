@@ -1563,12 +1563,12 @@ class AdvancedWelcomeSecurityBot:
             logger.error(f"Error running bot: {e}")
     
     def run(self):
-    """Start the bot"""
-    try:
-        logger.info("Starting Advanced Welcome Security Bot...")
-        self.application.run_polling(allowed_updates=Update.ALL_TYPES)
-    except Exception as e:
-        logger.error(f"Error running bot: {e}")
+        """Start the bot"""
+        try:
+            logger.info("Starting Advanced Welcome Security Bot...")
+            self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+        except Exception as e:
+            logger.error(f"Error running bot: {e}")
     
     def stop(self):
         """Stop the bot gracefully"""
@@ -1590,6 +1590,7 @@ if __name__ == '__main__':
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
+
 
 
 
