@@ -1146,8 +1146,12 @@ class AdvancedWelcomeSecurityBot:
 
     # ===== MESSAGE HANDLERS =====
     async def message_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Handle text messages"""
+        """Handle text messages - FIXED VERSION"""
         try:
+            # Add None check for update
+            if not update or not update.message:
+                return
+                
             chat_id = update.message.chat_id
             text = update.message.text or update.message.caption or ""
             
@@ -1159,8 +1163,12 @@ class AdvancedWelcomeSecurityBot:
             logger.error(f"Error in message handler: {e}")
 
     async def media_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Handle media messages"""
+        """Handle media messages - FIXED VERSION"""
         try:
+            # Add None check for update
+            if not update or not update.message:
+                return
+                
             chat_id = update.message.chat_id
             if self.group_settings.get(chat_id, {}).get('antispam_enabled', True):
                 await self.anti_spam_check(update, context)
@@ -1168,7 +1176,7 @@ class AdvancedWelcomeSecurityBot:
             logger.error(f"Error in media handler: {e}")
 
     async def anti_spam_check(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Check for spam"""
+        """Check for spam - FIXED VERSION"""
         try:
             user_id = update.effective_user.id
             chat_id = update.effective_chat.id
@@ -1193,14 +1201,24 @@ class AdvancedWelcomeSecurityBot:
                     parse_mode=ParseMode.HTML
                 )
                 
-                await context.application.job_queue.run_once(
-                    self.delete_message,
+                # FIXED: Use run_once correctly without await
+                context.application.job_queue.run_once(
+                    self.delete_message_callback,
                     5,
-                    data=warning_msg.chat_id,
+                    data={'chat_id': chat_id, 'message_id': warning_msg.message_id},
                     name=f"delete_{warning_msg.message_id}"
                 )
         except Exception as e:
             logger.error(f"Error in anti-spam: {e}")
+    
+    async def delete_message_callback(self, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Callback to delete message - FIXED VERSION"""
+        try:
+            chat_id = context.job.data['chat_id']
+            message_id = context.job.data['message_id']
+            await context.bot.delete_message(chat_id, message_id)
+        except Exception as e:
+            logger.error(f"Error deleting message: {e}")
 
     async def banned_words_check(self, update: Update, context: ContextTypes.DEFAULT_TYPE, text: str) -> None:
         """Check for banned words"""
@@ -1316,6 +1334,7 @@ class AdvancedWelcomeSecurityBot:
         except Exception as e:
             logger.error(f"Error in button handler: {e}")
 
+# REMOVE THIS OLD METHOD:
     async def delete_message(self, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Delete a message"""
         try:
@@ -1590,6 +1609,7 @@ if __name__ == '__main__':
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
+
 
 
 
