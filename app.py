@@ -17,7 +17,7 @@ def run_bot():
         logging.info("🤖 Starting Telegram Bot...")
         BOT_TOKEN = os.getenv('BOT_TOKEN')
         
-        if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
+        if not BOT_TOKEN or BOT_TOKEN == "8228108336:AAF3OWn5-nYQjEZhNactyldXV9FW9kTtq9k":
             logging.error("❌ BOT_TOKEN not set!")
             return
         
