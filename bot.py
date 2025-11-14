@@ -1553,13 +1553,26 @@ class AdvancedWelcomeSecurityBot:
         except Exception as e:
             logger.error(f"Error in error handler: {e}")
 
-    def run(self):
-        """Start the bot"""
+    async def run_async(self):
+        """Run the bot asynchronously"""
         try:
             logger.info("Starting Advanced Welcome Security Bot...")
-            self.application.run_polling(allowed_updates=Update.ALL_TYPES)
+            await self.application.run_polling(allowed_updates=Update.ALL_TYPES)
         except Exception as e:
             logger.error(f"Error running bot: {e}")
+    
+    def run(self):
+        """Run the bot (synchronous wrapper for backward compatibility)"""
+        asyncio.run(self.run_async())
+    
+    def stop(self):
+        """Stop the bot gracefully"""
+        try:
+            if hasattr(self, 'application') and self.application.running:
+                self.application.stop()
+                logger.info("Bot stopped gracefully")
+        except Exception as e:
+            logger.error(f"Error stopping bot: {e}")
 
 # Main execution
 # Add this at the VERY END of your bot.py file:
@@ -1572,5 +1585,6 @@ if __name__ == '__main__':
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
+
 
 
