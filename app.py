@@ -1,85 +1,59 @@
 from flask import Flask
 import os
 import logging
+import subprocess
 import threading
 import time
-import requests
 
 app = Flask(__name__)
-
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global variable to track if bot is running
-bot_running = False
-
-def run_bot():
-    """Run the Telegram bot - SIMPLE VERSION"""
-    global bot_running
-    try:
-        logger.info("🤖 Starting Telegram Bot...")
-        
-        # Import inside function
-        from bot import AdvancedWelcomeSecurityBot
-        
-        BOT_TOKEN = os.getenv('BOT_TOKEN', "8228108336:AAF3OWn5-nYQjEZhNactyldXV9FW9kTtq9k")
-        
-        if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
-            logger.error("❌ BOT_TOKEN not set!")
-            return
-        
-        logger.info(f"✅ Using BOT_TOKEN: {BOT_TOKEN[:10]}...")
-        bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
-        bot_running = True
-        bot.run()
-        
-    except Exception as e:
-        logger.error(f"❌ Bot error: {e}")
-        bot_running = False
-
-def keep_alive():
-    """Ping the service to keep it awake"""
+def run_bot_subprocess():
+    """Run bot as subprocess and auto-restart"""
     while True:
         try:
-            # Get the Render URL
-            render_url = os.getenv('RENDER_EXTERNAL_URL')
-            if render_url:
-                requests.get(f"{render_url}/health", timeout=10)
-                logger.info("✅ Pinged to stay awake")
+            logger.info("🤖 Starting bot subprocess...")
+            # Run bot.py as a separate process
+            process = subprocess.run(
+                ['python', 'bot.py'],
+                capture_output=True,
+                text=True
+            )
+            
+            if process.stdout:
+                logger.info(f"Bot output: {process.stdout}")
+            if process.stderr:
+                logger.error(f"Bot errors: {process.stderr}")
+                
+            logger.warning("⚠️ Bot process ended, restarting in 10 seconds...")
+            time.sleep(10)
+            
         except Exception as e:
-            logger.error(f"❌ Ping failed: {e}")
-        time.sleep(300)  # Ping every 5 minutes
+            logger.error(f"❌ Subprocess error: {e}")
+            time.sleep(30)
 
 @app.route('/')
 def home():
-    status = "🟢 RUNNING" if bot_running else "🔴 STOPPED"
-    return f"""
+    return """
     <html>
         <head><title>HexaLegends Bot</title></head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h1>🤖 HexaLegends Telegram Bot</h1>
-            <div style="font-size: 24px; font-weight: bold; margin: 20px 0;">Status: {status}</div>
-            <p>Service is running and bot should be working!</p>
-            <p><a href="/health">Health Check</a></p>
+        <body style="text-align: center; padding: 50px;">
+            <h1>🤖 HexaLegends Bot</h1>
+            <p>Status: 🟢 RUNNING</p>
+            <p>Bot runs in background with auto-restart</p>
         </body>
     </html>
     """
 
 @app.route('/health')
 def health():
-    return {
-        "status": "healthy",
-        "bot_running": bot_running,
-        "service": "hexalegends-bot",
-        "timestamp": time.time()
-    }
+    return "✅ Healthy"
 
 if __name__ == '__main__':
-    # Start keep-alive in background thread
-    keep_alive_thread = threading.Thread(target=keep_alive, daemon=True)
-    keep_alive_thread.start()
+    # Start bot in background thread
+    bot_thread = threading.Thread(target=run_bot_subprocess, daemon=True)
+    bot_thread.start()
     
-    # Start bot in main thread (this will block)
-    logger.info("🚀 Starting bot in main thread...")
-    run_bot()
+    # Start Flask
+    app.run(host='0.0.0.0', port=5000, debug=False)
