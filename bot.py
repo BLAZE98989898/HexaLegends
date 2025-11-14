@@ -1560,14 +1560,7 @@ class AdvancedWelcomeSecurityBot:
             self.application.run_polling(allowed_updates=Update.ALL_TYPES)
         except Exception as e:
             logger.error(f"Error running bot: {e}")
-    def stop(self):
-    """Stop the bot gracefully"""
-    try:
-        if hasattr(self, 'application') and self.application.running:
-            self.application.stop()
-            logger.info("Bot stopped gracefully")
-    except Exception as e:
-        logger.error(f"Error stopping bot: {e}")
+
 # Main execution
 # Add this at the VERY END of your bot.py file:
 if __name__ == '__main__':
@@ -1579,4 +1572,5 @@ if __name__ == '__main__':
     else:
         bot = AdvancedWelcomeSecurityBot(BOT_TOKEN)
         bot.run()
+
 
